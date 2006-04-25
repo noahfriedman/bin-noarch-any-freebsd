@@ -1,0 +1,20 @@
+#!/bin/sh
+# $Id$
+
+log=${TMPDIR-/tmp}/mstrace.$$
+cleanup() { e=$? ; rm -f "$log" ; exit $e; }
+trap cleanup 0 1 2 3 15
+
+# Create log file
+: > "$log"
+
+# Now start kdump on that file specifying looping, so that it will wait for
+# records that come in.
+kdump -f "$log" -l -m 65535 -t cnis -T 1>&2 &
+kdump_pid=$!
+
+ktrace -f "$log" -a -i -t cnis ${1+"$@"}
+
+kill $kdump_pid
+
+# eof

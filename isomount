@@ -1,0 +1,47 @@
+#!/bin/sh
+# $Id$
+
+# Usage: isomount foo.iso /cdrom
+#        isomount -u /cdrom
+
+# Use "mdconfig -l" to show all allocated units.
+# Use "mdconfig -lu #n" to show file attached to unit #n.
+
+do_mount()
+{
+  file=$1
+  mntpoint=$2
+
+  unit=`mdconfig -a -t vnode -f "$file"`
+  mount -t cd9660 -o ro "/dev/$unit" "$mntpoint"
+}
+
+get_mount_device()
+{
+  mount \
+   | while read dev on mntpoint rest ; do
+       case $mntpoint in
+         $1 ) echo $dev ; return 0 ;;
+       esac
+     done
+  return 1
+}
+
+do_umount()
+{
+  dev=`get_mount_device "$1"`
+  umount "$1" && mdconfig -d -u "$dev"
+}
+
+main()
+{
+  case $1 in
+    -u ) shift
+         do_umount "$@" ;;
+    *  ) do_mount  "$@" ;;
+  esac
+}
+
+main "$@"
+
+# eof

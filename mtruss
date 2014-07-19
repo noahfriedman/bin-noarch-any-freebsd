@@ -1,0 +1,2 @@
+#!/bin/sh
+exec truss -fae -s 65535 ${1+"$@"}

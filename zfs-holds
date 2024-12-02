@@ -1,0 +1,24 @@
+#!/bin/sh
+
+lastname=
+
+r=
+case $1 in
+    -r ) r=$1 ;;
+esac
+
+zfs list -H -t snapshot -d 1 |
+    while read fs ign; do
+        zfs holds -H $r "$fs"
+    done |
+    while read fs name ts; do
+        case $r:$lastname in
+            -r:$name ) : ;;
+            -r:''    ) lastname=$name ;;
+            -r:*     ) lastname=$name
+                       echo ;;
+        esac
+        printf "%s\t%45s\n" "$name" "$fs"
+    done
+
+# eof
